@@ -1,25 +1,25 @@
 package com.SmartCommerceAI.auth.service;
 
-import com.SmartCommerceAI.auth.dto.RegisterRequest;
 import com.SmartCommerceAI.auth.dto.AuthResponse;
+import com.SmartCommerceAI.auth.dto.RegisterRequest;
 import com.SmartCommerceAI.user.entity.Role;
 import com.SmartCommerceAI.user.entity.RoleType;
 import com.SmartCommerceAI.user.entity.User;
 import com.SmartCommerceAI.user.entity.UserStatus;
 import com.SmartCommerceAI.user.repository.RoleRepository;
 import com.SmartCommerceAI.user.repository.UserRepository;
+import com.SmartCommerceAI.common.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
 
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -32,6 +32,7 @@ public class AuthService {
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
+        log.info("Attempting to register user with email: {}", request.getEmail());
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new RuntimeException("Email is already registered");
         }
@@ -65,21 +66,12 @@ public class AuthService {
         User savedUser = userRepository.save(user);
         var jwtToken = jwtService.generateToken(savedUser);
 
-        List<String> rolesList = savedUser.getRoles().stream()
-                .map(role -> role.getName().name())
-                .collect(Collectors.toList());
-
-        return AuthResponse.builder()
-                .token(jwtToken)
-                .message("User registered successfully")
-                .userId(savedUser.getId())
-                .name(savedUser.getName())
-                .email(savedUser.getEmail())
-                .roles(rolesList)
-                .build();
+        log.info("User registered successfully: {}", savedUser.getEmail());
+        return UserMapper.toAuthResponse(savedUser, jwtToken, "Registration successful");
     }
 
     public AuthResponse login(com.SmartCommerceAI.auth.dto.LoginRequest request) {
+        log.info("Login attempt for email: {}", request.getEmail());
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getEmail(),
@@ -89,18 +81,8 @@ public class AuthService {
         var user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
         var jwtToken = jwtService.generateToken(user);
-        
-        List<String> rolesList = user.getRoles().stream()
-                .map(role -> role.getName().name())
-                .collect(Collectors.toList());
-                
-        return AuthResponse.builder()
-                .token(jwtToken)
-                .message("Login successful")
-                .userId(user.getId())
-                .name(user.getName())
-                .email(user.getEmail())
-                .roles(rolesList)
-                .build();
+
+        log.info("User logged in successfully: {}", user.getEmail());
+        return UserMapper.toAuthResponse(user, jwtToken, "Login successful");
     }
 }

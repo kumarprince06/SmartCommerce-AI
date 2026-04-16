@@ -26,6 +26,7 @@ public class SecurityConfig {
                 .requestMatchers("/auth/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/categories/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/products/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/variants/**").permitAll()
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

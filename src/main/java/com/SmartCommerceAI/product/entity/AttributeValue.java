@@ -1,0 +1,26 @@
+package com.SmartCommerceAI.product.entity;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+@Entity
+@Table(name = "attribute_values", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"attribute_id", "value"})
+})
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class AttributeValue {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "attribute_id", nullable = false)
+    private Attribute attribute;
+
+    @Column(name = "value", nullable = false)
+    private String value;
+}

@@ -3,6 +3,7 @@ package com.SmartCommerceAI.product.service;
 import com.SmartCommerceAI.category.entity.Category;
 import com.SmartCommerceAI.category.repository.CategoryRepository;
 import com.SmartCommerceAI.common.dto.PaginatedResponse;
+import com.SmartCommerceAI.common.service.AnalyticsService;
 import com.SmartCommerceAI.product.dto.CreateProductRequest;
 import com.SmartCommerceAI.product.dto.ProductResponse;
 import com.SmartCommerceAI.product.entity.Product;
@@ -14,6 +15,7 @@ import com.SmartCommerceAI.vendor.entity.VendorStatus;
 import com.SmartCommerceAI.vendor.repository.VendorRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,7 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final VendorRepository vendorRepository;
     private final CategoryRepository categoryRepository;
+    private final AnalyticsService analyticsService;
 
     @Transactional
     public ProductResponse createProduct(User currentUser, CreateProductRequest request) {
@@ -56,6 +59,7 @@ public class ProductService {
         return mapToResponse(savedProduct);
     }
 
+    @Cacheable(value = "products_catalog", key = "(#categoryId != null ? #categoryId.toString() : 'all') + '-' + (#vendorId != null ? #vendorId.toString() : 'all') + '-' + #pageable.pageNumber")
     public PaginatedResponse<ProductResponse> getProducts(Long categoryId, Long vendorId, Pageable pageable) {
         Page<Product> productsPage = productRepository.findWithFilters(categoryId, vendorId, pageable);
         
@@ -63,9 +67,12 @@ public class ProductService {
         return PaginatedResponse.of(dtoPage);
     }
 
+    @Cacheable(value = "product_single", key = "#id.toString()")
     public ProductResponse getProductById(Long id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
+        // Safely trigger decoupled background thread
+        analyticsService.logProductView(product);
         return mapToResponse(product);
     }
 

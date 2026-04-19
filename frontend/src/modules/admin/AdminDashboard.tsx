@@ -1,7 +1,39 @@
+import { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Users, DollarSign, PackageCheck, AlertTriangle } from 'lucide-react';
+import api from '../../services/api';
+
+interface AdminStats {
+  totalRevenue: number;
+  totalVendors: number;
+  totalOrders: number;
+  pendingVendors: number;
+}
 
 export default function AdminDashboard() {
+  const [stats, setStats] = useState<AdminStats>({
+    totalRevenue: 0,
+    totalVendors: 0,
+    totalOrders: 0,
+    pendingVendors: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.get('/analytics/admin/dashboard')
+      .then(res => {
+        const d = res.data.data;
+        setStats({
+          totalRevenue: d.totalRevenue ?? 0,
+          totalVendors: d.totalVendors ?? 0,
+          totalOrders: d.totalOrders ?? 0,
+          pendingVendors: d.pendingVendors ?? 0,
+        });
+      })
+      .catch(err => console.error('Admin dashboard error', err))
+      .finally(() => setLoading(false));
+  }, []);
+
   const revenueData = [
     { name: 'Mon', total: 12000 },
     { name: 'Tue', total: 15000 },
@@ -20,48 +52,67 @@ export default function AdminDashboard() {
   ];
   const COLORS = ['var(--primary)', 'var(--success)', 'var(--warning)', 'var(--danger)'];
 
+  const kpiCards = [
+    {
+      label: 'Total Ecosystem Revenue',
+      value: loading ? '...' : `$${stats.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      change: '+12.5% M/M',
+      changeColor: 'var(--success)',
+      icon: <DollarSign size={20} />,
+      iconBg: 'var(--success-bg)',
+      iconColor: 'var(--success)',
+    },
+    {
+      label: 'Total Vendors',
+      value: loading ? '...' : stats.totalVendors,
+      icon: <Users size={20} />,
+      iconBg: 'var(--primary-light)',
+      iconColor: 'var(--primary)',
+    },
+    {
+      label: 'Total Placed Orders',
+      value: loading ? '...' : stats.totalOrders,
+      icon: <PackageCheck size={20} />,
+      iconBg: 'var(--primary-light)',
+      iconColor: 'var(--primary)',
+    },
+    {
+      label: 'Pending Vendor Approvals',
+      value: loading ? '...' : stats.pendingVendors,
+      icon: <AlertTriangle size={20} />,
+      iconBg: 'var(--warning-bg)',
+      iconColor: 'var(--warning)',
+    },
+  ];
+
   return (
     <div>
-      <h1 style={{ fontSize: '1.75rem', color: 'var(--secondary)', marginBottom: '2rem' }}>Platform Overview (Admin)</h1>
+      <h1 style={{ fontSize: '1.75rem', color: 'var(--secondary)', marginBottom: '2rem' }}>
+        Platform Overview (Admin)
+      </h1>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
-        <div className="glass" style={{ padding: '1.5rem', borderRadius: 'var(--radius-lg)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <div style={{ color: 'var(--text-secondary)' }}>Total Ecosystem Revenue</div>
-            <div style={{ padding: '0.5rem', background: 'var(--success-bg)', borderRadius: 'var(--radius-md)', color: 'var(--success)' }}><DollarSign size={20} /></div>
+        {kpiCards.map((card, i) => (
+          <div key={i} className="glass" style={{ padding: '1.5rem', borderRadius: 'var(--radius-lg)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>{card.label}</div>
+              <div style={{ padding: '0.5rem', background: card.iconBg, borderRadius: 'var(--radius-md)', color: card.iconColor }}>
+                {card.icon}
+              </div>
+            </div>
+            <div style={{ fontSize: '1.75rem', fontWeight: 700 }}>{card.value}</div>
+            {card.change && (
+              <div style={{ color: card.changeColor, fontSize: '0.875rem', marginTop: '0.5rem' }}>
+                {card.change}
+              </div>
+            )}
           </div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 700 }}>$1,245,678</div>
-          <div style={{ color: 'var(--success)', fontSize: '0.875rem', marginTop: '0.5rem' }}>+12.5% M/M</div>
-        </div>
-        
-        <div className="glass" style={{ padding: '1.5rem', borderRadius: 'var(--radius-lg)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <div style={{ color: 'var(--text-secondary)' }}>Active Vendors</div>
-            <div style={{ padding: '0.5rem', background: 'var(--primary-light)', borderRadius: 'var(--radius-md)', color: 'var(--primary)' }}><Users size={20} /></div>
-          </div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 700 }}>1,234</div>
-        </div>
-
-        <div className="glass" style={{ padding: '1.5rem', borderRadius: 'var(--radius-lg)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <div style={{ color: 'var(--text-secondary)' }}>Total Placed Orders</div>
-            <div style={{ padding: '0.5rem', background: 'var(--primary-light)', borderRadius: 'var(--radius-md)', color: 'var(--primary)' }}><PackageCheck size={20} /></div>
-          </div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 700 }}>12,345</div>
-        </div>
-
-        <div className="glass" style={{ padding: '1.5rem', borderRadius: 'var(--radius-lg)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <div style={{ color: 'var(--text-secondary)' }}>Pending Vendor Approvals</div>
-            <div style={{ padding: '0.5rem', background: 'var(--warning-bg)', borderRadius: 'var(--radius-md)', color: 'var(--warning)' }}><AlertTriangle size={20} /></div>
-          </div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 700 }}>56</div>
-        </div>
+        ))}
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem' }}>
         <div className="glass" style={{ padding: '1.5rem', borderRadius: 'var(--radius-lg)', height: '400px' }}>
-          <h2 style={{ fontSize: '1.125rem', marginBottom: '2rem' }}>Volume Revenue Constraints</h2>
+          <h2 style={{ fontSize: '1.125rem', marginBottom: '2rem' }}>Weekly Revenue Trend</h2>
           <ResponsiveContainer width="100%" height="80%">
             <BarChart data={revenueData}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} />

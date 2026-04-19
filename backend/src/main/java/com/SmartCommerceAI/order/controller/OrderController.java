@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,7 +30,7 @@ public class OrderController {
     ) {
         return ResponseEntity.ok(ApiResponse.success(
                 orderService.createOrder(currentUser, request),
-                "Order created accurately generating synchronous constraints and async backgrounds"
+                "Order created successfully"
         ));
     }
 
@@ -42,7 +43,21 @@ public class OrderController {
         Pageable pageable = PageRequest.of(page, size);
         return ResponseEntity.ok(ApiResponse.success(
                 orderService.getUserOrders(currentUser, pageable),
-                "Orders retrieved securely against User mapping"
+                "Orders retrieved successfully"
+        ));
+    }
+
+    @GetMapping("/vendor")
+    @PreAuthorize("hasRole('VENDOR')")
+    public ResponseEntity<ApiResponse<PaginatedResponse<OrderResponse>>> getVendorOrders(
+            @AuthenticationPrincipal User currentUser,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(ApiResponse.success(
+                orderService.getVendorOrders(currentUser, pageable),
+                "Vendor orders retrieved successfully"
         ));
     }
 
@@ -53,19 +68,19 @@ public class OrderController {
     ) {
         return ResponseEntity.ok(ApiResponse.success(
                 orderService.getOrderById(id, currentUser),
-                "Order Profile found securely"
+                "Order retrieved successfully"
         ));
     }
 
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAnyRole('VENDOR', 'ADMIN')")
     public ResponseEntity<ApiResponse<OrderResponse>> updateOrderStatus(
             @PathVariable Long id,
             @Valid @RequestBody OrderStatusUpdateRequest request
     ) {
-        // Technically an internal admin/vendor operation mapped natively via gateway checking roles ordinarily.
         return ResponseEntity.ok(ApiResponse.success(
                 orderService.updateOrderStatus(id, request),
-                "Lifecycle advanced accurately mapping History traits"
+                "Order status updated successfully"
         ));
     }
 }

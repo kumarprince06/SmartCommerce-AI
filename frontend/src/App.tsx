@@ -18,49 +18,51 @@ import AIRecommendations from './modules/vendor/AIRecommendations';
 import AdminDashboard from './modules/admin/AdminDashboard';
 import VendorManagement from './modules/admin/VendorManagement';
 import CommissionRules from './modules/admin/CommissionRules';
+import CategoryManagement from './modules/admin/CategoryManagement';
 
 function App() {
   return (
-      <AuthProvider>
-        <CartProvider>
-          <BrowserRouter>
-            <Routes>
-              {/* Standalone Auth — full screen, no layout wrapper */}
-              <Route path="/login" element={<AuthPage />} />
+    <AuthProvider>
+      <CartProvider>
+        <BrowserRouter>
+          <Routes>
+            {/* Standalone Auth — full screen, no layout wrapper */}
+            <Route path="/login" element={<AuthPage />} />
 
-              {/* Customer Domain */}
-              <Route path="/" element={<CustomerLayout />}>
-                <Route index element={<ProductListing />} />
-                <Route path="product/:id" element={<ProductDetail />} />
-                <Route path="cart" element={<CartPage />} />
-                <Route path="orders" element={<OrdersPage />} />
-              </Route>
+            {/* Customer Domain */}
+            <Route path="/" element={<CustomerLayout />}>
+              <Route index element={<ProductListing />} />
+              <Route path="product/:id" element={<ProductDetail />} />
+              <Route path="cart" element={<CartPage />} />
+              <Route path="orders" element={<OrdersPage />} />
+            </Route>
 
-              {/* Vendor Domain */}
-              <Route path="/vendor" element={<RoleRoute requiredRole="VENDOR" />}>
-                <Route element={<VendorLayout />}>
-                  <Route index element={<Navigate to="dashboard" replace />} />
-                  <Route path="dashboard" element={<VendorDashboard />} />
-                  <Route path="products" element={<ProductList />} />
-                  <Route path="products/create" element={<CreateProduct />} />
-                  <Route path="orders" element={<VendorOrders />} />
-                  <Route path="ai" element={<AIRecommendations />} />
-                </Route>
+            {/* Vendor Domain */}
+            <Route path="/vendor" element={<RoleRoute requiredRole="VENDOR" />}>
+              <Route element={<VendorLayout />}>
+                <Route index element={<Navigate to="dashboard" replace />} />
+                <Route path="dashboard" element={<VendorDashboard />} />
+                <Route path="products" element={<ProductList />} />
+                <Route path="products/create" element={<CreateProduct />} />
+                <Route path="orders" element={<VendorOrders />} />
+                <Route path="ai" element={<AIRecommendations />} />
               </Route>
+            </Route>
 
-              {/* Admin Domain */}
-              <Route path="/admin" element={<RoleRoute requiredRole="ADMIN" />}>
-                <Route element={<AdminLayout />}>
-                  <Route index element={<Navigate to="dashboard" replace />} />
-                  <Route path="dashboard" element={<AdminDashboard />} />
-                  <Route path="vendors" element={<VendorManagement />} />
-                  <Route path="commissions" element={<CommissionRules />} />
-                </Route>
+            {/* Admin Domain */}
+            <Route path="/admin" element={<RoleRoute requiredRole="ADMIN" />}>
+              <Route element={<AdminLayout />}>
+                <Route index element={<Navigate to="dashboard" replace />} />
+                <Route path="dashboard" element={<AdminDashboard />} />
+                <Route path="vendors" element={<VendorManagement />} />
+                <Route path="categories" element={<CategoryManagement />} />
+                <Route path="commissions" element={<CommissionRules />} />
               </Route>
-            </Routes>
-          </BrowserRouter>
-        </CartProvider>
-      </AuthProvider>
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </CartProvider>
+    </AuthProvider>
   );
 }
 

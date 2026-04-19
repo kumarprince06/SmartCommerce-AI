@@ -16,6 +16,8 @@ import com.SmartCommerceAI.product.entity.ProductVariant;
 import com.SmartCommerceAI.product.repository.ProductVariantRepository;
 import com.SmartCommerceAI.product.service.InventoryService;
 import com.SmartCommerceAI.user.entity.User;
+import com.SmartCommerceAI.vendor.entity.Vendor;
+import com.SmartCommerceAI.vendor.repository.VendorRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -33,6 +35,7 @@ import java.util.stream.Collectors;
 public class OrderService {
 
     private final OrderRepository orderRepository;
+    private final VendorRepository vendorRepository;
     private final OrderItemRepository orderItemRepository;
     private final OrderStatusHistoryRepository historyRepository;
     
@@ -136,6 +139,13 @@ public class OrderService {
 
     public PaginatedResponse<OrderResponse> getUserOrders(User currentUser, Pageable pageable) {
         Page<Order> orderPage = orderRepository.findByUserId(currentUser.getId(), pageable);
+        return PaginatedResponse.of(orderPage.map(this::mapToResponse));
+    }
+
+    public PaginatedResponse<OrderResponse> getVendorOrders(User currentUser, Pageable pageable) {
+        Vendor vendor = vendorRepository.findByUser(currentUser)
+                .orElseThrow(() -> new RuntimeException("Vendor profile not found"));
+        Page<Order> orderPage = orderRepository.findOrdersByVendorId(vendor.getId(), pageable);
         return PaginatedResponse.of(orderPage.map(this::mapToResponse));
     }
 

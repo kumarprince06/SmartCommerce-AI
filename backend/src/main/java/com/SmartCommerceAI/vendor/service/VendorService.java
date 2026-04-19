@@ -17,6 +17,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -63,9 +66,14 @@ public class VendorService {
         // Generate a new refreshed JWT reflecting the new roles
         String newToken = jwtService.generateToken(updatedUser);
 
-        log.info("Successfully registered user {} as VENDOR and generated refreshed JWT", updatedUser.getEmail());
-
+        log.info("Successfully registered user {} as VENDOR", updatedUser.getEmail());
         return mapToResponse(savedVendor, newToken);
+    }
+
+    public List<VendorResponse> getAllVendors() {
+        return vendorRepository.findAll().stream()
+                .map(v -> mapToResponse(v, null))
+                .collect(Collectors.toList());
     }
 
     public VendorResponse getVendorById(Long id) {
@@ -88,7 +96,6 @@ public class VendorService {
         log.info("Updating status for vendor ID {} to {}", id, request.getStatus());
         vendor.setStatus(request.getStatus());
         Vendor savedVendor = vendorRepository.save(vendor);
-
         return mapToResponse(savedVendor, null);
     }
 

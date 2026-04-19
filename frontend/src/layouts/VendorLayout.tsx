@@ -1,62 +1,89 @@
-import { Outlet, useNavigate } from 'react-router-dom';
-import { Package, TrendingUp, Settings, LogOut, ShoppingCart, Sparkles } from 'lucide-react';
+import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { LayoutDashboard, Package, ShoppingCart, Sparkles, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+
+const NAV = [
+  { to: '/vendor/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { to: '/vendor/products',  icon: Package,         label: 'My Products' },
+  { to: '/vendor/orders',    icon: ShoppingCart,    label: 'Orders' },
+  { to: '/vendor/ai',        icon: Sparkles,        label: 'AI Pricing' },
+];
 
 export default function VendorLayout() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
-  
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
+  const { logout, user } = useAuth();
+
+  const handleLogout = () => { logout(); navigate('/login'); };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-admin)' }}>
-      {/* Sidebar Overlay */}
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-admin, var(--bg-main))' }}>
       <aside style={{
         width: '260px',
         background: 'var(--bg-surface)',
         borderRight: '1px solid var(--border-light)',
-        padding: '2rem 1.5rem',
+        padding: '2rem 1.25rem',
         display: 'flex',
         flexDirection: 'column',
-        gap: '2rem'
+        gap: '2rem',
+        flexShrink: 0,
       }}>
-        <div style={{ color: 'var(--success)' }}>
-          <h2 style={{ fontSize: '1.25rem' }}>Vendor Panel</h2>
+        {/* Brand */}
+        <div>
+          <div style={{ fontSize: '1.25rem', fontWeight: 800, background: 'linear-gradient(135deg, var(--success, #16a34a), #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            SmartCommerce
+          </div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, marginTop: '0.125rem', letterSpacing: '0.05em' }}>
+            VENDOR PORTAL
+          </div>
         </div>
-        
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <button onClick={() => navigate('/vendor/dashboard')} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', borderRadius: 'var(--radius-md)', background: 'var(--primary-light)', color: 'var(--primary)', border: 'none', cursor: 'pointer' }}>
-            <TrendingUp size={20} /> Dashboard
-          </button>
-          <button onClick={() => navigate('/vendor/products')} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer' }}>
-            <Package size={20} /> My Products
-          </button>
-          <button onClick={() => navigate('/vendor/orders')} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer' }}>
-            <ShoppingCart size={20} /> fulfillment Orders
-          </button>
-          <button onClick={() => navigate('/vendor/ai')} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer' }}>
-            <Sparkles size={20} color="var(--warning)" /> AI Tracking
-          </button>
-          <button onClick={() => navigate('/vendor/settings')} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer' }}>
-            <Settings size={20} /> Settings
-          </button>
+
+        {/* User Badge */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.875rem', background: 'var(--bg-main)', borderRadius: 'var(--radius-md)' }}>
+          <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--success, #16a34a), #22d3ee)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', fontWeight: 700, color: 'white', flexShrink: 0 }}>
+            {user?.name?.charAt(0).toUpperCase() || 'V'}
+          </div>
+          <div style={{ overflow: 'hidden' }}>
+            <div style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.name || 'Vendor'}</div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Vendor Account</div>
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', flex: 1 }}>
+          {NAV.map(({ to, icon: Icon, label }) => (
+            <NavLink
+              key={to}
+              to={to}
+              style={({ isActive }) => ({
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                padding: '0.75rem 1rem',
+                borderRadius: 'var(--radius-md)',
+                textDecoration: 'none',
+                fontWeight: isActive ? 600 : 400,
+                background: isActive ? 'rgba(34,197,94,0.12)' : 'transparent',
+                color: isActive ? 'var(--success, #16a34a)' : 'var(--text-secondary)',
+                fontSize: '0.9375rem',
+                transition: 'all 0.15s',
+              })}
+            >
+              <Icon size={20} />
+              {label}
+            </NavLink>
+          ))}
         </nav>
-        
-        <div style={{ marginTop: 'auto' }}>
-          <button onClick={handleLogout} style={{
-            display: 'flex', alignItems: 'center', gap: '0.75rem', width: '100%',
-            background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer',
-            padding: '0.75rem'
-          }}>
-            <LogOut size={20} /> Logout
-          </button>
-        </div>
+
+        {/* Logout */}
+        <button
+          onClick={handleLogout}
+          style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', width: '100%', background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', padding: '0.75rem 1rem', borderRadius: 'var(--radius-md)', fontWeight: 500 }}
+        >
+          <LogOut size={20} /> Logout
+        </button>
       </aside>
 
-      <main style={{ flex: 1, padding: '2rem', overflowY: 'auto' }}>
+      <main style={{ flex: 1, padding: '2.5rem', overflowY: 'auto', maxWidth: 'calc(100vw - 260px)' }}>
         <Outlet />
       </main>
     </div>

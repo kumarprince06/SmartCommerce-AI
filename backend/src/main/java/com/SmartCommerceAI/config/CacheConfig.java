@@ -36,7 +36,8 @@ public class CacheConfig {
                 "product_single",
                 "categories",
                 "vendor_metrics",
-                "ai_recommendations"
+                "ai_recommendations",
+                "variantPricing"
         );
     }
 }
